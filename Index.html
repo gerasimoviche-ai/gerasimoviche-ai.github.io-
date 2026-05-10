@@ -1,0 +1,558 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ГОСXP — Управление Спортивного Превосходства</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@400;700;900&family=Raleway:wght@300;400;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --teal-deep: #042f2e;
+    --teal-mid: #0f766e;
+    --teal-bright: #14b8a6;
+    --teal-light: #5eead4;
+    --teal-pale: #99f6e4;
+    --accent-gold: #fbbf24;
+    --glass: rgba(255,255,255,0.07);
+    --glass-border: rgba(255,255,255,0.13);
+    --text: #f0fdfa;
+    --muted: rgba(240,253,250,0.65);
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body {
+    font-family: 'Raleway', sans-serif;
+    background: linear-gradient(160deg, #042f2e 0%, #0f766e 40%, #0d9488 70%, #134e4a 100%);
+    min-height: 100vh;
+    color: var(--text);
+    overflow-x: hidden;
+  }
+  body::before {
+    content:'';
+    position:fixed;
+    inset:0;
+    background:
+      radial-gradient(ellipse 60% 40% at 80% 20%, rgba(20,184,166,0.18), transparent),
+      radial-gradient(ellipse 50% 50% at 10% 80%, rgba(4,47,46,0.6), transparent);
+    pointer-events:none;
+    z-index:0;
+  }
+  .wrap { position:relative; z-index:1; }
+ 
+  /* HERO */
+  .hero { text-align:center; padding: 70px 20px 50px; }
+  .hero-eyebrow {
+    font-family:'Unbounded',sans-serif;
+    font-size:0.7rem;
+    letter-spacing:0.3em;
+    color: var(--teal-pale);
+    opacity:0.7;
+    margin-bottom:18px;
+    text-transform:uppercase;
+  }
+  .hero h1 {
+    font-family:'Unbounded',sans-serif;
+    font-size: clamp(2.8rem,8vw,6rem);
+    font-weight:900;
+    line-height:0.95;
+    letter-spacing:-2px;
+    color: #fff;
+    text-shadow: 0 0 60px rgba(94,234,212,0.35);
+  }
+  .hero h1 span { color: var(--teal-pale); }
+  .hero-sub {
+    margin-top:22px;
+    font-size:1.05rem;
+    color: var(--muted);
+    max-width:540px;
+    margin-left:auto;
+    margin-right:auto;
+  }
+ 
+  /* LEADERBOARD */
+  .leaderboard { max-width:1100px; margin: 0 auto 60px; padding: 0 20px; }
+  .section-label {
+    font-family:'Unbounded',sans-serif;
+    font-size:0.65rem;
+    letter-spacing:0.3em;
+    color: var(--teal-pale);
+    opacity:0.6;
+    margin-bottom:16px;
+    text-transform:uppercase;
+  }
+  .lb-grid {
+    display:grid;
+    grid-template-columns: repeat(auto-fit, minmax(130px,1fr));
+    gap:12px;
+  }
+  .lb-card {
+    background: var(--glass);
+    border: 1px solid var(--glass-border);
+    border-radius:20px;
+    padding:16px 12px;
+    text-align:center;
+    backdrop-filter:blur(16px);
+    transition:0.25s;
+  }
+  .lb-card:hover { transform:translateY(-4px); background:rgba(255,255,255,0.11); border-color: var(--teal-light); }
+  .lb-rank { font-family:'Unbounded',sans-serif; font-size:1.3rem; font-weight:700; color: var(--teal-pale); opacity:0.5; margin-bottom:6px; }
+  .lb-rank.gold { color: var(--accent-gold); opacity:1; }
+  .lb-rank.silver { color:#e2e8f0; opacity:0.9; }
+  .lb-rank.bronze { color:#fb923c; opacity:0.9; }
+  .lb-name { font-family:'Unbounded',sans-serif; font-size:0.58rem; font-weight:700; line-height:1.4; margin-bottom:8px; }
+  .lb-xp { font-family:'Unbounded',sans-serif; font-size:1rem; font-weight:700; color: var(--teal-pale); }
+  .lb-role { font-size:0.6rem; color:var(--muted); margin-top:4px; }
+ 
+  /* CARDS */
+  .cards-section { max-width:1100px; margin:0 auto 80px; padding:0 20px; display:flex; flex-direction:column; gap:28px; }
+  .emp-card {
+    background: var(--glass);
+    border:1px solid var(--glass-border);
+    border-radius:28px;
+    padding:30px;
+    backdrop-filter:blur(18px);
+    box-shadow:0 8px 40px rgba(0,0,0,0.2);
+    transition:0.2s;
+  }
+  .emp-card:hover { box-shadow:0 12px 50px rgba(0,0,0,0.3); }
+  .card-header { display:flex; align-items:center; gap:20px; margin-bottom:24px; flex-wrap:wrap; }
+  .avatar-circle {
+    width:64px; height:64px;
+    border-radius:50%;
+    background: linear-gradient(135deg, var(--teal-mid), var(--teal-bright));
+    display:flex; align-items:center; justify-content:center;
+    font-family:'Unbounded',sans-serif;
+    font-size:1.1rem; font-weight:900; color:#042f2e;
+    flex-shrink:0;
+    box-shadow:0 0 20px rgba(20,184,166,0.4);
+  }
+  .card-info { flex:1; }
+  .card-info h2 { font-family:'Unbounded',sans-serif; font-size:1rem; font-weight:700; margin-bottom:4px; }
+  .card-info .role-tag { font-size:0.75rem; color:var(--teal-pale); opacity:0.7; }
+  .card-info .spec-tag { font-size:0.65rem; color:var(--muted); margin-top:2px; }
+  .xp-display { text-align:right; }
+  .xp-number { font-family:'Unbounded',sans-serif; font-size:2rem; font-weight:900; color:var(--teal-pale); }
+  .xp-number.bump { animation: bump 0.35s ease; }
+  @keyframes bump { 0%{transform:scale(1)} 50%{transform:scale(1.18)} 100%{transform:scale(1)} }
+  .xp-label { font-size:0.7rem; color:var(--muted); letter-spacing:0.1em; }
+  .xp-bar-wrap { background:rgba(0,0,0,0.25); border-radius:999px; height:6px; margin-bottom:24px; overflow:hidden; }
+  .xp-bar-fill {
+    height:100%;
+    background:linear-gradient(90deg, var(--teal-mid), var(--teal-pale));
+    border-radius:999px;
+    transition: width 0.5s cubic-bezier(.4,0,.2,1);
+    width:0%;
+  }
+  .items-cols { display:grid; grid-template-columns:1fr 1fr; gap:20px; }
+  @media(max-width:620px) { .items-cols { grid-template-columns:1fr; } }
+  .col-label { font-family:'Unbounded',sans-serif; font-size:0.65rem; letter-spacing:0.2em; margin-bottom:12px; opacity:0.7; }
+  .col-label.plus { color:#4ade80; }
+  .col-label.minus { color:#f87171; }
+  .action-item {
+    display:flex; justify-content:space-between; align-items:center; gap:10px;
+    padding:11px 13px; margin-bottom:8px;
+    background:rgba(255,255,255,0.05); border-radius:13px; border:1px solid transparent; transition:0.2s;
+  }
+  .action-item:hover { background:rgba(255,255,255,0.1); border-color:rgba(255,255,255,0.12); }
+  .action-desc { font-size:0.82rem; flex:1; line-height:1.4; }
+  .xp-btn {
+    border:none; padding:8px 12px; border-radius:10px; cursor:pointer;
+    font-family:'Unbounded',sans-serif; font-weight:700; font-size:0.68rem;
+    white-space:nowrap; transition:0.2s; flex-shrink:0;
+  }
+  .xp-btn:hover { transform:scale(1.06); }
+  .xp-btn.plus-btn { background:linear-gradient(135deg,#14b8a6,#5eead4); color:#042f2e; }
+  .xp-btn.minus-btn { background:linear-gradient(135deg,#ef4444,#fca5a5); color:#fff; }
+  .reset-btn {
+    margin-top:18px; border:1px solid rgba(255,255,255,0.15);
+    background:transparent; color:rgba(255,255,255,0.5);
+    padding:8px 18px; border-radius:10px; cursor:pointer; font-size:0.78rem; transition:0.2s;
+  }
+  .reset-btn:hover { background:rgba(255,255,255,0.06); color:#fff; }
+ 
+  /* SHOP */
+  .shop-section { max-width:1100px; margin:0 auto 80px; padding:0 20px; }
+  .shop-title { font-family:'Unbounded',sans-serif; font-size:2rem; font-weight:900; margin-bottom:8px; }
+  .shop-sub { color:var(--muted); font-size:0.9rem; margin-bottom:20px; }
+  .shop-who { font-size:0.82rem; color:var(--teal-pale); margin-bottom:6px; opacity:0.7; }
+  .shop-select {
+    background:rgba(0,0,0,0.3); border:1px solid var(--glass-border); color:#fff;
+    padding:10px 16px; border-radius:12px; font-family:'Raleway',sans-serif;
+    font-size:0.9rem; margin-bottom:28px; cursor:pointer; outline:none;
+    width:100%; max-width:360px;
+  }
+  .shop-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(240px,1fr)); gap:18px; }
+  .shop-card {
+    background:var(--glass); border:1px solid var(--glass-border);
+    border-radius:22px; padding:22px; backdrop-filter:blur(12px); transition:0.25s;
+  }
+  .shop-card:hover { transform:translateY(-4px); border-color:var(--teal-light); }
+  .shop-icon { font-size:2rem; margin-bottom:10px; }
+  .shop-card h4 { font-family:'Unbounded',sans-serif; font-size:0.82rem; font-weight:700; margin-bottom:8px; }
+  .shop-card p { font-size:0.82rem; color:var(--muted); margin-bottom:16px; line-height:1.5; }
+  .buy-btn {
+    width:100%; padding:11px; border:none; border-radius:12px;
+    background:linear-gradient(135deg,var(--teal-mid),var(--teal-pale));
+    color:#042f2e; font-family:'Unbounded',sans-serif; font-weight:700; font-size:0.68rem;
+    cursor:pointer; transition:0.2s;
+  }
+  .buy-btn:hover { transform:scale(1.03); }
+ 
+  /* TOAST */
+  .toast {
+    position:fixed; bottom:30px; left:50%;
+    transform:translateX(-50%) translateY(80px);
+    background:rgba(4,47,46,0.95); border:1px solid var(--teal-light);
+    color:#fff; padding:14px 28px; border-radius:16px; font-size:0.9rem;
+    backdrop-filter:blur(20px); z-index:9999;
+    transition:0.4s cubic-bezier(.4,0,.2,1);
+    white-space:nowrap; box-shadow:0 8px 30px rgba(0,0,0,0.4);
+  }
+  .toast.show { transform:translateX(-50%) translateY(0); }
+ 
+  footer { text-align:center; padding:40px 20px; color:var(--muted); font-size:0.8rem; opacity:0.6; }
+</style>
+</head>
+<body>
+<div class="wrap">
+ 
+  <section class="hero">
+    <div class="hero-eyebrow">Ведомственная система распределения славы</div>
+    <h1>ГОС<span>XP</span><br>SYSTEM</h1>
+    <p class="hero-sub">Корпоративная RPG госслужбы. Зарабатывай XP, переживай совещания, открывай привилегии.</p>
+  </section>
+ 
+  <div class="leaderboard">
+    <div class="section-label">⚔ Табель величия</div>
+    <div class="lb-grid" id="leaderboard"></div>
+  </div>
+ 
+  <div class="cards-section">
+ 
+    <!-- 1. Парсаданян -->
+    <div class="emp-card">
+      <div class="card-header">
+        <div class="avatar-circle">П</div>
+        <div class="card-info">
+          <h2>Парсаданян В.Д.</h2>
+          <div class="role-tag">Начальник управления</div>
+        </div>
+        <div class="xp-display"><div class="xp-number" id="xp-boss">0</div><div class="xp-label">XP</div></div>
+      </div>
+      <div class="xp-bar-wrap"><div class="xp-bar-fill" id="bar-boss"></div></div>
+      <div class="items-cols">
+        <div>
+          <div class="col-label plus">▲ ДОСТИЖЕНИЯ</div>
+          <div class="action-item"><div class="action-desc">🏆 Провёл совещание без единого замечания</div><button class="xp-btn plus-btn" onclick="changeXP('boss',500)">+500</button></div>
+          <div class="action-item"><div class="action-desc">⚡ Согласовал вопрос одним звонком</div><button class="xp-btn plus-btn" onclick="changeXP('boss',700)">+700</button></div>
+          <div class="action-item"><div class="action-desc">🔥 Отстоял финансирование на комиссии</div><button class="xp-btn plus-btn" onclick="changeXP('boss',1200)">+1200</button></div>
+          <div class="action-item"><div class="action-desc">🧠 Помнит все проблемные объекты города</div><button class="xp-btn plus-btn" onclick="changeXP('boss',450)">+450</button></div>
+          <div class="action-item"><div class="action-desc">🥇 Лично приехал на мероприятие в выходной</div><button class="xp-btn plus-btn" onclick="changeXP('boss',400)">+400</button></div>
+        </div>
+        <div>
+          <div class="col-label minus">▼ ШТРАФЫ</div>
+          <div class="action-item"><div class="action-desc">☠️ Назначил совещание на 07:45</div><button class="xp-btn minus-btn" onclick="changeXP('boss',-350)">−350</button></div>
+          <div class="action-item"><div class="action-desc">📑 Вернул документ: «не чувствуется масштаб»</div><button class="xp-btn minus-btn" onclick="changeXP('boss',-250)">−250</button></div>
+          <div class="action-item"><div class="action-desc">🌀 Создал ещё одну рабочую группу</div><button class="xp-btn minus-btn" onclick="changeXP('boss',-300)">−300</button></div>
+          <div class="action-item"><div class="action-desc">⏳ Сказал «на 5 минут» и выступал 58 минут</div><button class="xp-btn minus-btn" onclick="changeXP('boss',-550)">−550</button></div>
+        </div>
+      </div>
+      <button class="reset-btn" onclick="resetXP('boss')">↺ Сбросить XP</button>
+    </div>
+ 
+    <!-- 2. Герасимович -->
+    <div class="emp-card">
+      <div class="card-header">
+        <div class="avatar-circle">Г</div>
+        <div class="card-info">
+          <h2>Герасимович Е.С.</h2>
+          <div class="role-tag">Заместитель начальника</div>
+        </div>
+        <div class="xp-display"><div class="xp-number" id="xp-deputy">0</div><div class="xp-label">XP</div></div>
+      </div>
+      <div class="xp-bar-wrap"><div class="xp-bar-fill" id="bar-deputy"></div></div>
+      <div class="items-cols">
+        <div>
+          <div class="col-label plus">▲ ДОСТИЖЕНИЯ</div>
+          <div class="action-item"><div class="action-desc">📊 Собрал штатное расписание без замечаний</div><button class="xp-btn plus-btn" onclick="changeXP('deputy',900)">+900</button></div>
+          <div class="action-item"><div class="action-desc">🎤 Подготовил выступление начальника за ночь</div><button class="xp-btn plus-btn" onclick="changeXP('deputy',700)">+700</button></div>
+          <div class="action-item"><div class="action-desc">⚡ Нашёл инфоповод за 10 минут до публикации</div><button class="xp-btn plus-btn" onclick="changeXP('deputy',500)">+500</button></div>
+          <div class="action-item"><div class="action-desc">🧠 Помнит структуру всех подведов наизусть</div><button class="xp-btn plus-btn" onclick="changeXP('deputy',650)">+650</button></div>
+          <div class="action-item"><div class="action-desc">🏛️ Подготовил материалы к совещанию раньше срока</div><button class="xp-btn plus-btn" onclick="changeXP('deputy',800)">+800</button></div>
+        </div>
+        <div>
+          <div class="col-label minus">▼ ШТРАФЫ</div>
+          <div class="action-item"><div class="action-desc">📂 Перепутал редакцию штатного расписания</div><button class="xp-btn minus-btn" onclick="changeXP('deputy',-450)">−450</button></div>
+          <div class="action-item"><div class="action-desc">📉 Сделал презентацию без последнего слайда</div><button class="xp-btn minus-btn" onclick="changeXP('deputy',-300)">−300</button></div>
+          <div class="action-item"><div class="action-desc">☕ Ушёл за кофе во время срочного согласования</div><button class="xp-btn minus-btn" onclick="changeXP('deputy',-150)">−150</button></div>
+          <div class="action-item"><div class="action-desc">😵 Открыл не тот файл на совещании</div><button class="xp-btn minus-btn" onclick="changeXP('deputy',-700)">−700</button></div>
+        </div>
+      </div>
+      <button class="reset-btn" onclick="resetXP('deputy')">↺ Сбросить XP</button>
+    </div>
+ 
+    <!-- 3. Юшкова -->
+    <div class="emp-card">
+      <div class="card-header">
+        <div class="avatar-circle">Ю</div>
+        <div class="card-info">
+          <h2>Юшкова М.М.</h2>
+          <div class="role-tag">Начальник отдела</div>
+        </div>
+        <div class="xp-display"><div class="xp-number" id="xp-chief">0</div><div class="xp-label">XP</div></div>
+      </div>
+      <div class="xp-bar-wrap"><div class="xp-bar-fill" id="bar-chief"></div></div>
+      <div class="items-cols">
+        <div>
+          <div class="col-label plus">▲ ДОСТИЖЕНИЯ</div>
+          <div class="action-item"><div class="action-desc">⚖️ Выявила нарушение до проверки</div><button class="xp-btn plus-btn" onclick="changeXP('chief',1100)">+1100</button></div>
+          <div class="action-item"><div class="action-desc">📚 Подготовила НПА без единой правки</div><button class="xp-btn plus-btn" onclick="changeXP('chief',950)">+950</button></div>
+          <div class="action-item"><div class="action-desc">🛡️ Прошла проверку подведа без замечаний</div><button class="xp-btn plus-btn" onclick="changeXP('chief',1200)">+1200</button></div>
+          <div class="action-item"><div class="action-desc">🔍 Нашла противоречие в положении на 48 странице</div><button class="xp-btn plus-btn" onclick="changeXP('chief',700)">+700</button></div>
+          <div class="action-item"><div class="action-desc">📑 Согласовала НПА с первого круга</div><button class="xp-btn plus-btn" onclick="changeXP('chief',800)">+800</button></div>
+        </div>
+        <div>
+          <div class="col-label minus">▼ ШТРАФЫ</div>
+          <div class="action-item"><div class="action-desc">📎 Забыла приложение к постановлению</div><button class="xp-btn minus-btn" onclick="changeXP('chief',-500)">−500</button></div>
+          <div class="action-item"><div class="action-desc">🌀 Случайно оставила старую редакцию пункта</div><button class="xp-btn minus-btn" onclick="changeXP('chief',-650)">−650</button></div>
+          <div class="action-item"><div class="action-desc">⚠️ Пропустила срок публикации НПА</div><button class="xp-btn minus-btn" onclick="changeXP('chief',-1200)">−1200</button></div>
+          <div class="action-item"><div class="action-desc">😶 Сказала «перепроверим всё» в 17:58</div><button class="xp-btn minus-btn" onclick="changeXP('chief',-300)">−300</button></div>
+        </div>
+      </div>
+      <button class="reset-btn" onclick="resetXP('chief')">↺ Сбросить XP</button>
+    </div>
+ 
+    <!-- 4. Потапов -->
+    <div class="emp-card">
+      <div class="card-header">
+        <div class="avatar-circle">По</div>
+        <div class="card-info">
+          <h2>Потапов Я.А.</h2>
+          <div class="role-tag">Главный специалист</div>
+          <div class="spec-tag">входящая корреспонденция, кадры</div>
+        </div>
+        <div class="xp-display"><div class="xp-number" id="xp-potapov">0</div><div class="xp-label">XP</div></div>
+      </div>
+      <div class="xp-bar-wrap"><div class="xp-bar-fill" id="bar-potapov"></div></div>
+      <div class="items-cols">
+        <div>
+          <div class="col-label plus">▲ ДОСТИЖЕНИЯ</div>
+          <div class="action-item"><div class="action-desc">📬 Разобрал входящую корреспонденцию до обеда</div><button class="xp-btn plus-btn" onclick="changeXP('potapov',600)">+600</button></div>
+          <div class="action-item"><div class="action-desc">📁 Нашёл письмо 2021 года за 15 секунд</div><button class="xp-btn plus-btn" onclick="changeXP('potapov',700)">+700</button></div>
+          <div class="action-item"><div class="action-desc">👔 Подготовил кадровые документы без возврата</div><button class="xp-btn plus-btn" onclick="changeXP('potapov',850)">+850</button></div>
+          <div class="action-item"><div class="action-desc">⚡ Передал письмо раньше, чем о нём вспомнили</div><button class="xp-btn plus-btn" onclick="changeXP('potapov',500)">+500</button></div>
+          <div class="action-item"><div class="action-desc">🧠 Помнит все сроки отпусков сотрудников</div><button class="xp-btn plus-btn" onclick="changeXP('potapov',450)">+450</button></div>
+        </div>
+        <div>
+          <div class="col-label minus">▼ ШТРАФЫ</div>
+          <div class="action-item"><div class="action-desc">📎 Не приложил скан к письму</div><button class="xp-btn minus-btn" onclick="changeXP('potapov',-500)">−500</button></div>
+          <div class="action-item"><div class="action-desc">📂 Потерял письмо в недрах ЭДО</div><button class="xp-btn minus-btn" onclick="changeXP('potapov',-900)">−900</button></div>
+          <div class="action-item"><div class="action-desc">😵 Отправил не ту версию приказа</div><button class="xp-btn minus-btn" onclick="changeXP('potapov',-700)">−700</button></div>
+          <div class="action-item"><div class="action-desc">☠️ Случайно поставил не того исполнителя</div><button class="xp-btn minus-btn" onclick="changeXP('potapov',-450)">−450</button></div>
+        </div>
+      </div>
+      <button class="reset-btn" onclick="resetXP('potapov')">↺ Сбросить XP</button>
+    </div>
+ 
+    <!-- 5. Широкова -->
+    <div class="emp-card">
+      <div class="card-header">
+        <div class="avatar-circle">Ш</div>
+        <div class="card-info">
+          <h2>Широкова М.М.</h2>
+          <div class="role-tag">Главный специалист</div>
+          <div class="spec-tag">муниципальная программа, передвижки, иные цели</div>
+        </div>
+        <div class="xp-display"><div class="xp-number" id="xp-shirokova">0</div><div class="xp-label">XP</div></div>
+      </div>
+      <div class="xp-bar-wrap"><div class="xp-bar-fill" id="bar-shirokova"></div></div>
+      <div class="items-cols">
+        <div>
+          <div class="col-label plus">▲ ДОСТИЖЕНИЯ</div>
+          <div class="action-item"><div class="action-desc">📊 Собрала муниципальную программу без расхождений</div><button class="xp-btn plus-btn" onclick="changeXP('shirokova',1000)">+1000</button></div>
+          <div class="action-item"><div class="action-desc">💰 Успешно провела передвижку лимитов</div><button class="xp-btn plus-btn" onclick="changeXP('shirokova',850)">+850</button></div>
+          <div class="action-item"><div class="action-desc">🧠 Нашла финансирование там, где его никто не видел</div><button class="xp-btn plus-btn" onclick="changeXP('shirokova',1200)">+1200</button></div>
+          <div class="action-item"><div class="action-desc">📈 Сошла по всем целевым показателям</div><button class="xp-btn plus-btn" onclick="changeXP('shirokova',700)">+700</button></div>
+          <div class="action-item"><div class="action-desc">⚡ Подготовила изменения в программу за один день</div><button class="xp-btn plus-btn" onclick="changeXP('shirokova',650)">+650</button></div>
+        </div>
+        <div>
+          <div class="col-label minus">▼ ШТРАФЫ</div>
+          <div class="action-item"><div class="action-desc">📉 Не сошлись цифры в муниципальной программе</div><button class="xp-btn minus-btn" onclick="changeXP('shirokova',-950)">−950</button></div>
+          <div class="action-item"><div class="action-desc">🌀 Передвижка ушла не на тот КБК</div><button class="xp-btn minus-btn" onclick="changeXP('shirokova',-1200)">−1200</button></div>
+          <div class="action-item"><div class="action-desc">😶 Случайно удвоила показатель в таблице</div><button class="xp-btn minus-btn" onclick="changeXP('shirokova',-500)">−500</button></div>
+          <div class="action-item"><div class="action-desc">📑 Открыла старую редакцию программы</div><button class="xp-btn minus-btn" onclick="changeXP('shirokova',-350)">−350</button></div>
+        </div>
+      </div>
+      <button class="reset-btn" onclick="resetXP('shirokova')">↺ Сбросить XP</button>
+    </div>
+ 
+    <!-- 6. Первышина -->
+    <div class="emp-card">
+      <div class="card-header">
+        <div class="avatar-circle">Пе</div>
+        <div class="card-info">
+          <h2>Первышина Н.Н.</h2>
+          <div class="role-tag">Главный специалист</div>
+          <div class="spec-tag">разряды, судейские категории, положения, безопасность</div>
+        </div>
+        <div class="xp-display"><div class="xp-number" id="xp-pervyshina">0</div><div class="xp-label">XP</div></div>
+      </div>
+      <div class="xp-bar-wrap"><div class="xp-bar-fill" id="bar-pervyshina"></div></div>
+      <div class="items-cols">
+        <div>
+          <div class="col-label plus">▲ ДОСТИЖЕНИЯ</div>
+          <div class="action-item"><div class="action-desc">🏅 Присвоила разряды без единой ошибки</div><button class="xp-btn plus-btn" onclick="changeXP('pervyshina',850)">+850</button></div>
+          <div class="action-item"><div class="action-desc">⚖️ Проверила положение соревнований на соответствие</div><button class="xp-btn plus-btn" onclick="changeXP('pervyshina',700)">+700</button></div>
+          <div class="action-item"><div class="action-desc">🛡️ Согласовала план безопасности с первого раза</div><button class="xp-btn plus-btn" onclick="changeXP('pervyshina',950)">+950</button></div>
+          <div class="action-item"><div class="action-desc">📑 Подготовила судейские категории без возврата</div><button class="xp-btn plus-btn" onclick="changeXP('pervyshina',800)">+800</button></div>
+          <div class="action-item"><div class="action-desc">🔥 Успела выпустить положение до дедлайна</div><button class="xp-btn plus-btn" onclick="changeXP('pervyshina',600)">+600</button></div>
+        </div>
+        <div>
+          <div class="col-label minus">▼ ШТРАФЫ</div>
+          <div class="action-item"><div class="action-desc">📎 Не хватило одной подписи в положении</div><button class="xp-btn minus-btn" onclick="changeXP('pervyshina',-450)">−450</button></div>
+          <div class="action-item"><div class="action-desc">⚠️ Перепутала возрастную категорию</div><button class="xp-btn minus-btn" onclick="changeXP('pervyshina',-700)">−700</button></div>
+          <div class="action-item"><div class="action-desc">🌀 Забыла приложение к плану безопасности</div><button class="xp-btn minus-btn" onclick="changeXP('pervyshina',-650)">−650</button></div>
+          <div class="action-item"><div class="action-desc">😵 Отправила положение без даты проведения</div><button class="xp-btn minus-btn" onclick="changeXP('pervyshina',-500)">−500</button></div>
+        </div>
+      </div>
+      <button class="reset-btn" onclick="resetXP('pervyshina')">↺ Сбросить XP</button>
+    </div>
+ 
+    <!-- 7. Муртазина -->
+    <div class="emp-card">
+      <div class="card-header">
+        <div class="avatar-circle">М</div>
+        <div class="card-info">
+          <h2>Муртазина А.А.</h2>
+          <div class="role-tag">Главный специалист</div>
+          <div class="spec-tag">нормативы затрат, закупки, соглашения</div>
+        </div>
+        <div class="xp-display"><div class="xp-number" id="xp-murtazina">0</div><div class="xp-label">XP</div></div>
+      </div>
+      <div class="xp-bar-wrap"><div class="xp-bar-fill" id="bar-murtazina"></div></div>
+      <div class="items-cols">
+        <div>
+          <div class="col-label plus">▲ ДОСТИЖЕНИЯ</div>
+          <div class="action-item"><div class="action-desc">💰 Рассчитала нормативы без замечаний финуправления</div><button class="xp-btn plus-btn" onclick="changeXP('murtazina',1200)">+1200</button></div>
+          <div class="action-item"><div class="action-desc">📊 Сошла по всем субсидиям</div><button class="xp-btn plus-btn" onclick="changeXP('murtazina',950)">+950</button></div>
+          <div class="action-item"><div class="action-desc">⚡ Заключила соглашение раньше срока</div><button class="xp-btn plus-btn" onclick="changeXP('murtazina',700)">+700</button></div>
+          <div class="action-item"><div class="action-desc">🛒 Провела закупку без единой жалобы</div><button class="xp-btn plus-btn" onclick="changeXP('murtazina',1100)">+1100</button></div>
+          <div class="action-item"><div class="action-desc">🧠 Помнит все КВР и КОСГУ наизусть</div><button class="xp-btn plus-btn" onclick="changeXP('murtazina',850)">+850</button></div>
+        </div>
+        <div>
+          <div class="col-label minus">▼ ШТРАФЫ</div>
+          <div class="action-item"><div class="action-desc">☠️ Перепутала КОСГУ</div><button class="xp-btn minus-btn" onclick="changeXP('murtazina',-1500)">−1500</button></div>
+          <div class="action-item"><div class="action-desc">📉 Норматив не сошёлся на 3 копейки</div><button class="xp-btn minus-btn" onclick="changeXP('murtazina',-700)">−700</button></div>
+          <div class="action-item"><div class="action-desc">📎 Забыла пункт в соглашении</div><button class="xp-btn minus-btn" onclick="changeXP('murtazina',-650)">−650</button></div>
+          <div class="action-item"><div class="action-desc">😵 Закупка ушла на доработку</div><button class="xp-btn minus-btn" onclick="changeXP('murtazina',-900)">−900</button></div>
+        </div>
+      </div>
+      <button class="reset-btn" onclick="resetXP('murtazina')">↺ Сбросить XP</button>
+    </div>
+ 
+  </div>
+ 
+  <!-- SHOP -->
+  <section class="shop-section">
+    <div class="shop-title">🛒 Магазин привилегий</div>
+    <p class="shop-sub">Потрать заработанные XP на законный отдых от государственной машины.</p>
+    <div class="shop-who">Списать XP у:</div>
+    <select class="shop-select" id="shopSelect">
+      <option value="boss">Парсаданян В.Д.</option>
+      <option value="deputy">Герасимович Е.С.</option>
+      <option value="chief">Юшкова М.М.</option>
+      <option value="potapov">Потапов Я.А.</option>
+      <option value="shirokova">Широкова М.М.</option>
+      <option value="pervyshina">Первышина Н.Н.</option>
+      <option value="murtazina">Муртазина А.А.</option>
+    </select>
+    <div class="shop-grid">
+      <div class="shop-card"><div class="shop-icon">🍱</div><h4>Обед +1 час</h4><p>Легально задержаться на обеде ещё на час без вопросов из чата.</p><button class="buy-btn" onclick="buyItem(1200,'Обед +1 час')">Купить за 1200 XP</button></div>
+      <div class="shop-card"><div class="shop-icon">💅</div><h4>Маникюр в рабочее время</h4><p>Официальный выход «по важному вопросу».</p><button class="buy-btn" onclick="buyItem(1800,'Маникюр в рабочее время')">Купить за 1800 XP</button></div>
+      <div class="shop-card"><div class="shop-icon">🩺</div><h4>Врач в рабочее время</h4><p>Без лишних вопросов и сообщений в чат.</p><button class="buy-btn" onclick="buyItem(1400,'Врач в рабочее время')">Купить за 1400 XP</button></div>
+      <div class="shop-card"><div class="shop-icon">🔇</div><h4>День без разговоров</h4><p>Никто не может звать на срочные созвоны. Весь день.</p><button class="buy-btn" onclick="buyItem(2200,'День без разговоров')">Купить за 2200 XP</button></div>
+      <div class="shop-card"><div class="shop-icon">☕</div><h4>Бесконечный кофе</h4><p>Можно ходить за кофе сколько угодно без учёта времени.</p><button class="buy-btn" onclick="buyItem(900,'Бесконечный кофе')">Купить за 900 XP</button></div>
+      <div class="shop-card"><div class="shop-icon">📴</div><h4>Режим «не на связи»</h4><p>Не отвечать в рабочем чате 2 часа. Официально.</p><button class="buy-btn" onclick="buyItem(1600,'Режим «не на связи»')">Купить за 1600 XP</button></div>
+    </div>
+  </section>
+ 
+  <footer>ГОСXP © Система выживания в госуправлении · Управление Спортивного Превосходства 2026</footer>
+</div>
+ 
+<div class="toast" id="toast"></div>
+ 
+<script>
+  const state = { boss:0, deputy:0, chief:0, potapov:0, shirokova:0, pervyshina:0, murtazina:0 };
+  const MAX_XP = 6000;
+  const names = {
+    boss:'Парсаданян В.Д.', deputy:'Герасимович Е.С.', chief:'Юшкова М.М.',
+    potapov:'Потапов Я.А.', shirokova:'Широкова М.М.', pervyshina:'Первышина Н.Н.', murtazina:'Муртазина А.А.'
+  };
+  const roles = {
+    boss:'Начальник управления', deputy:'Зам. начальника', chief:'Начальник отдела',
+    potapov:'Гл. специалист (кадры)', shirokova:'Гл. специалист (программа)',
+    pervyshina:'Гл. специалист (разряды)', murtazina:'Гл. специалист (закупки)'
+  };
+ 
+  function changeXP(id, amount) {
+    state[id] = Math.max(state[id] + amount, 0);
+    renderXP(id);
+    renderLeaderboard();
+    showToast(amount > 0 ? `+${amount} XP → ${names[id]}` : `${amount} XP → ${names[id]}`, amount > 0);
+  }
+ 
+  function resetXP(id) {
+    state[id] = 0;
+    renderXP(id);
+    renderLeaderboard();
+    showToast(`XP сброшен: ${names[id]}`, null);
+  }
+ 
+  function renderXP(id) {
+    const el = document.getElementById('xp-' + id);
+    el.innerText = state[id].toLocaleString('ru');
+    el.classList.remove('bump');
+    void el.offsetWidth;
+    el.classList.add('bump');
+    document.getElementById('bar-' + id).style.width = Math.min((state[id] / MAX_XP) * 100, 100) + '%';
+  }
+ 
+  function renderLeaderboard() {
+    const sorted = Object.entries(state).sort((a,b) => b[1]-a[1]);
+    const rc = ['gold','silver','bronze'];
+    const re = ['🥇','🥈','🥉'];
+    document.getElementById('leaderboard').innerHTML = sorted.map(([id,xp],i) => `
+      <div class="lb-card">
+        <div class="lb-rank ${rc[i]||''}">${re[i]||(i+1)}</div>
+        <div class="lb-name">${names[id]}</div>
+        <div class="lb-xp">${xp.toLocaleString('ru')}</div>
+        <div class="lb-role">${roles[id]}</div>
+      </div>`).join('');
+  }
+ 
+  let toastTimer;
+  function showToast(msg, positive) {
+    const t = document.getElementById('toast');
+    t.innerText = (positive===true?'✅ ':positive===false?'❌ ':'↺ ') + msg;
+    t.classList.add('show');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(()=>t.classList.remove('show'), 2500);
+  }
+ 
+  function buyItem(cost, name) {
+    const id = document.getElementById('shopSelect').value;
+    if (state[id] >= cost) {
+      state[id] -= cost;
+      renderXP(id);
+      renderLeaderboard();
+      showToast(`«${name}» куплено! −${cost} XP у ${names[id]}`, true);
+    } else {
+      showToast(`Недостаточно XP у ${names[id]} (нужно ${cost})`, false);
+    }
+  }
+ 
+  renderLeaderboard();
+</script>
+</body>
+</html>
+ 
