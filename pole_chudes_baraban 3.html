@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<title>Поле чудес — барабан</title>
+<style>
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    min-height: 100vh;
+    background: linear-gradient(160deg, #ff4d8d 0%, #ff8a3d 45%, #ffd23f 100%);
+    font-family: "Segoe UI", Arial, sans-serif;
+    color: #fff;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 24px 16px 48px;
+  }
+  h1 {
+    font-size: 36px;
+    font-weight: 800;
+    letter-spacing: 3px;
+    margin: 0 0 36px;
+    text-shadow: 0 3px 10px rgba(0,0,0,0.35);
+    text-align: center;
+  }
+
+  .wheel-wrap {
+    position: relative;
+    width: 360px;
+    height: 360px;
+  }
+  .pointer {
+    position: absolute;
+    top: -8px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 0; height: 0;
+    border-left: 16px solid transparent;
+    border-right: 16px solid transparent;
+    border-top: 30px solid #fff;
+    z-index: 5;
+    filter: drop-shadow(0 3px 4px rgba(0,0,0,0.5));
+  }
+  #wheel {
+    width: 100%;
+    height: 100%;
+    transform: rotate(0deg);
+    transition: transform 4s cubic-bezier(0.17, 0.67, 0.12, 0.99);
+    filter: drop-shadow(0 8px 20px rgba(0,0,0,0.45));
+    will-change: transform;
+  }
+  .hub {
+    position: absolute;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    width: 92px; height: 92px;
+    border-radius: 50%;
+    background: radial-gradient(circle at 35% 35%, #fff9e0, #ffd23f 55%, #d99a0f);
+    border: 4px solid #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    box-shadow: 0 6px 14px rgba(0,0,0,0.4);
+  }
+  .hub:active { transform: translate(-50%, -50%) scale(0.96); }
+  .hub-icon {
+    width: 0; height: 0;
+    border-top: 16px solid transparent;
+    border-bottom: 16px solid transparent;
+    border-left: 24px solid #7a3d00;
+    margin-left: 4px;
+  }
+
+  .sr-only {
+    position: absolute;
+    width: 1px; height: 1px;
+    overflow: hidden;
+    clip: rect(0,0,0,0);
+  }
+</style>
+</head>
+<body>
+
+<h2 class="sr-only">Интерактивный барабан «Поле чудес» с очками и призовыми секторами для дня рождения</h2>
+
+<h1>🎡 ПОЛЕ ЧУДЕС 🎡</h1>
+
+<div class="wheel-wrap">
+  <div class="pointer"></div>
+  <svg id="wheel" viewBox="0 0 320 320"></svg>
+  <div class="hub" id="spinBtn" title="Крутить барабан">
+    <div class="hub-icon"></div>
+  </div>
+</div>
+
+<script>
+(function () {
+  // --- Сектора барабана ---
+  var sectors = [100, 200, "Приз", 150, 400, 250, "Приз", 500, 350, "Банкрот", 200, 300];
+  var sectorColors = ["#e63970","#2fa37a","#ffaa1d","#c93f63","#7a4ed8","#1f9bd1","#ffaa1d","#e85d2c","#c93f63","#9b1f2c","#7a4ed8","#2fa37a"];
+
+  var n = sectors.length;
+  var radius = 150, cx = 160, cy = 160;
+  var wheel = document.getElementById("wheel");
+  var paths = "";
+  for (var i = 0; i < n; i++) {
+    var a0 = (i / n) * 2 * Math.PI - Math.PI / 2;
+    var a1 = ((i + 1) / n) * 2 * Math.PI - Math.PI / 2;
+    var x0 = cx + radius * Math.cos(a0), y0 = cy + radius * Math.sin(a0);
+    var x1 = cx + radius * Math.cos(a1), y1 = cy + radius * Math.sin(a1);
+    paths += '<path d="M' + cx + ',' + cy + ' L' + x0.toFixed(1) + ',' + y0.toFixed(1) +
+      ' A' + radius + ',' + radius + ' 0 0 1 ' + x1.toFixed(1) + ',' + y1.toFixed(1) +
+      ' Z" fill="' + sectorColors[i] + '" stroke="#ffffff" stroke-width="3"/>';
+    var amid = (a0 + a1) / 2;
+    var tx = cx + (radius * 0.66) * Math.cos(amid);
+    var ty = cy + (radius * 0.66) * Math.sin(amid);
+    var label = String(sectors[i]);
+    var fontSize = label.length > 4 ? 14 : 19;
+    var rot = (amid * 180 / Math.PI) + 90;
+    paths += '<text x="' + tx.toFixed(1) + '" y="' + ty.toFixed(1) + '" font-size="' + fontSize +
+      '" font-weight="800" fill="#ffffff" text-anchor="middle" dominant-baseline="middle" ' +
+      'transform="rotate(' + rot + ' ' + tx.toFixed(1) + ' ' + ty.toFixed(1) + ')">' + label + '</text>';
+  }
+  wheel.innerHTML = paths;
+
+  var isSpinning = false;
+  var spinBtn = document.getElementById("spinBtn");
+
+  spinBtn.addEventListener("click", function () {
+    if (isSpinning) return;
+    isSpinning = true;
+
+    var idx = Math.floor(Math.random() * n);
+    var sliceAngle = 360 / n;
+    // Середина сектора idx в исходной системе координат SVG (0° = на стрелке, по часовой)
+    var targetMid = idx * sliceAngle + sliceAngle / 2;
+    var extraSpins = 5; // целых оборотов для красоты анимации
+    var finalRotation = extraSpins * 360 + (360 - targetMid);
+
+    // Всегда крутим от 0, чтобы не копилась ошибка округления
+    wheel.style.transition = "none";
+    wheel.style.transform = "rotate(0deg)";
+    void wheel.offsetWidth;
+    wheel.style.transition = "transform 4s cubic-bezier(0.17, 0.67, 0.12, 0.99)";
+    wheel.style.transform = "rotate(" + finalRotation + "deg)";
+
+    setTimeout(function () {
+      isSpinning = false;
+    }, 4000);
+  });
+})();
+</script>
+
+</body>
+</html>
