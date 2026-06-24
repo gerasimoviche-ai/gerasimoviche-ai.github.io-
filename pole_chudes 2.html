@@ -1,0 +1,433 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<title>Поле чудес — день рождения</title>
+<style>
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    min-height: 100vh;
+    background: linear-gradient(180deg, #1a1340 0%, #2d1b5e 100%);
+    font-family: "Segoe UI", Arial, sans-serif;
+    color: #fff;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 24px 16px 48px;
+  }
+  h1 {
+    font-size: 32px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    margin: 8px 0 24px;
+    text-shadow: 0 2px 8px rgba(0,0,0,0.4);
+    text-align: center;
+  }
+  .top-bar {
+    display: flex;
+    gap: 16px;
+    align-items: center;
+    margin-bottom: 24px;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+  select, button {
+    font-size: 16px;
+    padding: 10px 18px;
+    border-radius: 10px;
+    border: none;
+    cursor: pointer;
+    font-family: inherit;
+  }
+  select {
+    background: #fff;
+    color: #2d1b5e;
+    font-weight: 600;
+  }
+  button {
+    background: #e8b923;
+    color: #2d1b5e;
+    font-weight: 700;
+    transition: transform 0.1s, box-shadow 0.2s;
+    box-shadow: 0 3px 0 #a87f0f;
+  }
+  button:hover { transform: translateY(-1px); }
+  button:active { transform: translateY(2px); box-shadow: 0 1px 0 #a87f0f; }
+  button.secondary {
+    background: #443a7a;
+    color: #fff;
+    box-shadow: 0 3px 0 #2a2150;
+  }
+
+  .board {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    justify-content: center;
+    background: #0f0a28;
+    border: 4px solid #e8b923;
+    border-radius: 16px;
+    padding: 24px 20px;
+    margin-bottom: 32px;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+  }
+  .cell {
+    width: 52px;
+    height: 64px;
+    background: linear-gradient(180deg, #2d5fa3, #1d3f73);
+    border: 2px solid #6ea0d8;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 28px;
+    font-weight: 700;
+    cursor: pointer;
+    user-select: none;
+    transition: background 0.3s, transform 0.15s;
+    color: #fff;
+  }
+  .cell:hover { transform: scale(1.05); }
+  .cell.revealed {
+    background: linear-gradient(180deg, #e8b923, #c89510);
+    border-color: #fff3c4;
+    color: #2d1b5e;
+  }
+
+  .question-box {
+    max-width: 640px;
+    background: rgba(255,255,255,0.08);
+    border: 1px solid rgba(255,255,255,0.2);
+    border-radius: 12px;
+    padding: 16px 20px;
+    margin-bottom: 32px;
+    font-size: 16px;
+    line-height: 1.5;
+    text-align: center;
+  }
+
+  .main-area {
+    display: flex;
+    gap: 40px;
+    align-items: center;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+
+  .wheel-wrap {
+    position: relative;
+    width: 320px;
+    height: 320px;
+  }
+  .pointer {
+    position: absolute;
+    top: -6px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 0; height: 0;
+    border-left: 14px solid transparent;
+    border-right: 14px solid transparent;
+    border-top: 26px solid #fff;
+    z-index: 5;
+    filter: drop-shadow(0 2px 3px rgba(0,0,0,0.5));
+  }
+  #wheel {
+    width: 100%;
+    height: 100%;
+    transform: rotate(0deg);
+    transition: transform 4s cubic-bezier(0.17, 0.67, 0.12, 0.99);
+    filter: drop-shadow(0 6px 16px rgba(0,0,0,0.5));
+    will-change: transform;
+  }
+  .hub {
+    position: absolute;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    width: 84px; height: 84px;
+    border-radius: 50%;
+    background: radial-gradient(circle at 35% 35%, #fff3c4, #e8b923 60%, #a87f0f);
+    border: 3px solid #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.4);
+  }
+  .hub:active { transform: translate(-50%, -50%) scale(0.96); }
+  .hub-icon {
+    width: 0; height: 0;
+    border-top: 14px solid transparent;
+    border-bottom: 14px solid transparent;
+    border-left: 22px solid #2d1b5e;
+    margin-left: 4px;
+  }
+
+  .score-panel {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+  .score-card {
+    background: rgba(255,255,255,0.1);
+    border: 1px solid rgba(255,255,255,0.25);
+    border-radius: 12px;
+    padding: 16px 28px;
+    text-align: center;
+    min-width: 180px;
+  }
+  .score-card .label {
+    font-size: 13px;
+    color: #c9bfe8;
+    margin-bottom: 6px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+  .score-card .value {
+    font-size: 36px;
+    font-weight: 700;
+    color: #e8b923;
+  }
+
+  .controls-row {
+    display: flex;
+    gap: 12px;
+    margin-top: 28px;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+
+  .prize-reveal {
+    display: none;
+    max-width: 480px;
+    margin-top: 20px;
+    background: linear-gradient(135deg, #854f0b, #c89510);
+    border: 2px solid #fff3c4;
+    border-radius: 14px;
+    padding: 20px 24px;
+    text-align: center;
+    box-shadow: 0 8px 20px rgba(0,0,0,0.4);
+  }
+  .prize-reveal.show { display: block; }
+  .prize-boxes {
+    font-size: 48px;
+    margin-bottom: 8px;
+  }
+  .prize-text {
+    font-size: 16px;
+    font-weight: 600;
+    color: #2d1b5e;
+  }
+
+  .sr-only {
+    position: absolute;
+    width: 1px; height: 1px;
+    overflow: hidden;
+    clip: rect(0,0,0,0);
+  }
+</style>
+</head>
+<body>
+
+<h2 class="sr-only">Интерактивная игра «Поле чудес»: барабан с очками и табло для угадывания слова по буквам, для дня рождения начальника отдела спорта</h2>
+
+<h1>🎡 ПОЛЕ ЧУДЕС 🎡</h1>
+
+<div class="top-bar">
+  <select id="wordSelect">
+    <option value="0">Раунд 1 — старинная игра (3 буквы)</option>
+    <option value="1">Раунд 2 — как звали руководителя (7 букв)</option>
+    <option value="2">Раунд 3 — советский бодибилдинг (10 букв)</option>
+    <option value="3">Раунд 4 — хоккей и баскетбол (5 букв)</option>
+    <option value="4">Раунд 5 — гавайский танец (7 букв)</option>
+  </select>
+  <button class="secondary" id="resetBtn">🔄 Новый раунд</button>
+</div>
+
+<div class="question-box" id="questionBox"></div>
+
+<div class="board" id="board"></div>
+
+<div class="main-area">
+  <div class="wheel-wrap">
+    <div class="pointer"></div>
+    <svg id="wheel" viewBox="0 0 320 320"></svg>
+    <div class="hub" id="spinBtn" title="Крутить барабан">
+      <div class="hub-icon"></div>
+    </div>
+  </div>
+
+  <div class="score-panel">
+    <div class="score-card">
+      <div class="label">Выпало на барабане</div>
+      <div class="value" id="spinResult">—</div>
+    </div>
+    <div class="score-card">
+      <div class="label">Счёт раунда</div>
+      <div class="value" id="scoreValue">0</div>
+    </div>
+  </div>
+</div>
+
+<div class="controls-row">
+  <button id="addScoreBtn">➕ Засчитать очки</button>
+  <button class="secondary" id="resetScoreBtn">↺ Сбросить счёт</button>
+  <button class="secondary" id="revealBtn">👁 Открыть всё слово</button>
+</div>
+
+<div class="prize-reveal" id="prizeReveal">
+  <div class="prize-boxes">🎁 🎁</div>
+  <div class="prize-text">Выпал сектор «Приз» — выносим две шкатулки!<br>Именинник выбирает одну — приз внутри его.</div>
+</div>
+
+<script>
+(function () {
+  // --- Данные раундов: слово + вопрос ведущего ---
+  var rounds = [
+    {
+      word: "ЧИЖ",
+      question: "Старинная русская игра, известная на Руси ещё в XVI веке. Играли деревянной палочкой, заострённой с двух концов: по ней нужно было ударить битой так, чтобы она улетела как можно дальше. Название совпадает с именем маленькой певчей птички."
+    },
+    {
+      word: "ВОЕВОДА",
+      question: "До XVIII века на Руси человека, который управлял городом или областью, отвечал за порядок и хозяйство — по сути, был тогдашним главой администрации — называли этим словом. Сегодня мы скажем «руководитель», а как называли тогда?"
+    },
+    {
+      word: "КУЛЬТУРИЗМ",
+      question: "Когда в СССР начали заниматься силовыми тренировками для развития мускулатуры, слово «бодибилдинг» долгое время не использовалось — был свой советский термин. Слово однокоренное с «культурой» — в смысле «культура тела»."
+    },
+    {
+      word: "БАНАН",
+      question: "Слово встречается в спортивном жаргоне сразу в двух видах спорта. В хоккее так называют сильный загиб крюка клюшки. В баскетболе этим же словом иногда называют эффектный блок-шот у самого кольца."
+    },
+    {
+      word: "ХУЛАХУП",
+      question: "Название этого спортивного снаряда — соединение двух слов: название гавайского танца с энергичными движениями бёдрами + английское слово «обруч». Патент получили в 1964 году основатели компании «Wham-O»."
+    }
+  ];
+
+  // --- Сектора барабана ---
+  var sectors = [100, 200, "Приз", 150, 400, 250, "Приз", 500, 350, "Банкрот", 200, 300];
+  var sectorColors = ["#3a2d7a","#1d6e56","#854f0b","#993556","#3a2d7a","#1d6e56","#854f0b","#a8431f","#993556","#791f1f","#3a2d7a","#1d6e56"];
+
+  var n = sectors.length;
+  var radius = 150, cx = 160, cy = 160;
+  var wheel = document.getElementById("wheel");
+  var paths = "";
+  for (var i = 0; i < n; i++) {
+    var a0 = (i / n) * 2 * Math.PI - Math.PI / 2;
+    var a1 = ((i + 1) / n) * 2 * Math.PI - Math.PI / 2;
+    var x0 = cx + radius * Math.cos(a0), y0 = cy + radius * Math.sin(a0);
+    var x1 = cx + radius * Math.cos(a1), y1 = cy + radius * Math.sin(a1);
+    paths += '<path d="M' + cx + ',' + cy + ' L' + x0.toFixed(1) + ',' + y0.toFixed(1) +
+      ' A' + radius + ',' + radius + ' 0 0 1 ' + x1.toFixed(1) + ',' + y1.toFixed(1) +
+      ' Z" fill="' + sectorColors[i] + '" stroke="#fff3c4" stroke-width="2"/>';
+    var amid = (a0 + a1) / 2;
+    var tx = cx + (radius * 0.66) * Math.cos(amid);
+    var ty = cy + (radius * 0.66) * Math.sin(amid);
+    var label = String(sectors[i]);
+    var fontSize = label.length > 4 ? 14 : 18;
+    var rot = (amid * 180 / Math.PI) + 90;
+    paths += '<text x="' + tx.toFixed(1) + '" y="' + ty.toFixed(1) + '" font-size="' + fontSize +
+      '" font-weight="700" fill="#ffffff" text-anchor="middle" dominant-baseline="middle" ' +
+      'transform="rotate(' + rot + ' ' + tx.toFixed(1) + ' ' + ty.toFixed(1) + ')">' + label + '</text>';
+  }
+  wheel.innerHTML = paths;
+
+  var currentRotation = 0;
+  var lastSpinValue = null;
+  var score = 0;
+
+  var spinBtn = document.getElementById("spinBtn");
+  var spinResult = document.getElementById("spinResult");
+  var scoreValue = document.getElementById("scoreValue");
+
+  var isSpinning = false;
+
+  spinBtn.addEventListener("click", function () {
+    if (isSpinning) return;
+    isSpinning = true;
+    document.getElementById("prizeReveal").classList.remove("show");
+    var idx = Math.floor(Math.random() * n);
+    var sliceAngle = 360 / n;
+    var targetMid = idx * sliceAngle + sliceAngle / 2;
+    var extraSpins = 1080 + Math.floor(Math.random() * 360);
+    var normalizedCurrent = currentRotation % 360;
+    var finalRotation = currentRotation + extraSpins + (360 - targetMid) - normalizedCurrent;
+    currentRotation = finalRotation;
+    wheel.style.transform = "rotate(" + currentRotation + "deg)";
+    spinResult.textContent = "…";
+    setTimeout(function () {
+      lastSpinValue = sectors[idx];
+      spinResult.textContent = lastSpinValue;
+      var prizeBlock = document.getElementById("prizeReveal");
+      if (lastSpinValue === "Приз") {
+        prizeBlock.classList.add("show");
+      } else {
+        prizeBlock.classList.remove("show");
+      }
+      isSpinning = false;
+    }, 4000);
+  });
+
+  document.getElementById("addScoreBtn").addEventListener("click", function () {
+    if (lastSpinValue === null) return;
+    if (lastSpinValue === "Банкрот") {
+      score = 0;
+    } else if (lastSpinValue === "Приз") {
+      // не добавляем очки, особый приз вручается отдельно
+    } else {
+      score += Number(lastSpinValue);
+    }
+    scoreValue.textContent = score;
+  });
+
+  document.getElementById("resetScoreBtn").addEventListener("click", function () {
+    score = 0;
+    scoreValue.textContent = score;
+  });
+
+  // --- Табло со словом ---
+  var board = document.getElementById("board");
+  var questionBox = document.getElementById("questionBox");
+  var wordSelect = document.getElementById("wordSelect");
+
+  function renderRound() {
+    var roundIdx = Number(wordSelect.value);
+    var round = rounds[roundIdx];
+    questionBox.textContent = round.question;
+    board.innerHTML = "";
+    var letters = round.word.split("");
+    letters.forEach(function (letter, i) {
+      var cell = document.createElement("div");
+      cell.className = "cell";
+      cell.dataset.letter = letter;
+      cell.dataset.revealed = "false";
+      cell.addEventListener("click", function () {
+        var isRevealed = cell.dataset.revealed === "true";
+        cell.dataset.revealed = isRevealed ? "false" : "true";
+        cell.textContent = isRevealed ? "" : letter;
+        cell.classList.toggle("revealed", !isRevealed);
+      });
+      board.appendChild(cell);
+    });
+  }
+
+  document.getElementById("revealBtn").addEventListener("click", function () {
+    var cells = board.querySelectorAll(".cell");
+    cells.forEach(function (cell) {
+      cell.dataset.revealed = "true";
+      cell.textContent = cell.dataset.letter;
+      cell.classList.add("revealed");
+    });
+  });
+
+  wordSelect.addEventListener("change", renderRound);
+  document.getElementById("resetBtn").addEventListener("click", renderRound);
+
+  renderRound();
+})();
+</script>
+
+</body>
+</html>
